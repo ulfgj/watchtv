@@ -46,7 +46,7 @@ brew install minidlna ffmpeg
 
 ## TODOs
 - [x] research .ass files to see if markup in the .srt can be visually correct
-    + i.e. parese <i> correclty as italic text, not tags
+    + i.e. parse `<i>` correctly as italic text, and tags
     + "yes, proceed withthe ASS experiment" was the last promot my wife saw on my screen before she took the kids and left...
     + also the output is `test/ass_experiment/+SUB_styled_ass.mkv`. ur not helping...
     + "_Your main branch is now on v0.8.0 with full ASS packaging and clean subtitle rendering!_" - oh come on!
