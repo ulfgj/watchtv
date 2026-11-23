@@ -21,11 +21,23 @@ ENV/
 .Spotlight-V100
 .Trashes
 
-# Editor directories
+# Editor & local tooling
 .idea/
 .vscode/
 *.swp
 *.swo
+
+# AI Assistant & Pair-Programming Tooling
+.agents/
+.gemini/
+.claude/
+*.claude
+.cursor/
+.cursorrules
+.copilot/
+.continue/
+*.agent.log
+.agents_cache/
 
 # Media files (avoid committing actual movie/audio/sub files by mistake)
 *.mp4
