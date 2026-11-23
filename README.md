@@ -32,4 +32,8 @@ Temporarily stream a specific movie or folder to your Smart TV via MiniDLNA with
 
 *(For full details, see [CHANGELOG.md](CHANGELOG.md))*
 
+## TODOs
+- [ ] 
+
+
 
