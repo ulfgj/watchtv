@@ -1,4 +1,8 @@
-# watchtv
+# watchtv 🎬
+
+![Version](https://img.shields.io/badge/version-0.7.0-blue.svg?style=flat-square)
+![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
+![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg?style=flat-square)
 
 Temporarily stream a specific movie or folder to your Smart TV via MiniDLNA with full subtitle support.
 
@@ -21,7 +25,19 @@ Temporarily stream a specific movie or folder to your Smart TV via MiniDLNA with
 - **MKV conversion (`--to-mkv`)**: Packages video + `.srt` into a `[SUB] <name>.mkv` file with native SRT subtitles for TVs that lack MP4 `mov_text` support.
 - **Automatic cleanup**: Runs MiniDLNA in an isolated temporary directory that cleans up its cache and logs on exit (`Ctrl+C`).
 
+## Version History 📜
+
+| Version | Status | Highlights |
+| :--- | :---: | :--- |
+| **`v0.7.0`** | 🚀 *Latest* | Added in-place `--soft-mux` (zero disk duplication) & `--version` flag. |
+| **`v0.6.0`** | ✅ | Added `--to-mkv` container packaging, `[SUB]` prefix, and single-file input. |
+| **`v0.5.0`** | ✅ | Solved Smart TV subtitle discovery with `strict_dlna=no` & custom DLNA headers. |
+| **`v0.1.0` – `v0.4.0`** | 🛠️ | Early CLI prototypes, ephemeral MiniDLNA temp configs, and network binding. |
+
+*(For full details, see [CHANGELOG.md](CHANGELOG.md))*
+
 ## TODOs
 * [x] add support for soft-mux as an option to creating a .mkv container.
     - doesn't duplicate the file on disk
+
 
