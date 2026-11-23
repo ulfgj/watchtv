@@ -7,10 +7,18 @@ import sys
 import tempfile
 from pathlib import Path
 
+__version__ = "0.7.0"
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Temporarily stream media to your Smart TV via MiniDLNA with subtitle support."
+    )
+    parser.add_argument(
+        "--version",
+        "-v",
+        action="version",
+        version=f"%(prog)s {__version__}",
     )
     parser.add_argument(
         "--media",
