@@ -7,7 +7,7 @@ import sys
 import tempfile
 from pathlib import Path
 
-__version__ = "0.7.0"
+__version__ = "0.8.0"
 
 
 def parse_args() -> argparse.Namespace:
@@ -130,7 +130,7 @@ def convert_to_mkv_subtitles(target_target: Path) -> None:
             "-c",
             "copy",
             "-c:s",
-            "srt",
+            "ass",
             "-metadata:s:s:0",
             "language=eng",
             str(temp_output),
