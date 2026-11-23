@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - `--soft-mux` flag to embed `.srt` subtitles directly into the video container in-place without duplicating disk space.
+- Changed MKV prefix to `+SUB_` so subtitle-enabled files sort at the very top of TV media browsers (before numbers and letters).
 - Mutually exclusive safeguard preventing `--to-mkv` and `--soft-mux` from running simultaneously.
 - `--version` / `-v` CLI flag.
 

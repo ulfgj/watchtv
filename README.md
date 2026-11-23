@@ -22,14 +22,14 @@ Temporarily stream a specific movie or folder to your Smart TV via MiniDLNA with
 ## Features
 - **File or folder input (`-m`)**: Pass either a folder or a single movie file. When pointing to a single movie (`-m /path/to/movie.mp4`), MiniDLNA automatically serves its **parent directory** so the TV can browse and play it.
 - **In-place soft-mux (`--soft-mux`)**: Embeds `.srt` subtitles directly into the video container without duplicating files on disk.
-- **MKV conversion (`--to-mkv`)**: Packages video + `.srt` into a `[SUB] <name>.mkv` file with native SRT subtitles for TVs that lack MP4 `mov_text` support.
+- **MKV conversion (`--to-mkv`)**: Packages video + `.srt` into a `+SUB_<name>.mkv` file with native SRT subtitles for TVs that lack MP4 `mov_text` support (the `+` prefix ensures it sorts at the top of the TV file list).
 - **Automatic cleanup**: Runs MiniDLNA in an isolated temporary directory that cleans up its cache and logs on exit (`Ctrl+C`).
 
 ## Version History
 
 | Version | Status | Highlights |
 | :--- | :---: | :--- |
-| **`v0.7.0`** | 🚀 *Latest* | Added in-place `--soft-mux` (zero disk duplication) & `--version` flag. |
+| **`v0.7.0`** | 🚀 *Latest* | Added in-place `--soft-mux` (zero disk duplication), `+SUB_` top-sorting prefix, & `--version` flag. |
 | **`v0.6.0`** | ✅ | Added `--to-mkv` container packaging, `[SUB]` prefix, and single-file input. |
 | **`v0.5.0`** | ✅ | Solved Smart TV subtitle discovery with `strict_dlna=no` & custom DLNA headers. |
 | **`v0.1.0` – `v0.4.0`** | 🛠️ | Early CLI prototypes, ephemeral MiniDLNA temp configs, and network binding. |
