@@ -6,6 +6,17 @@
 
 Temporarily stream a specific movie or folder to your Smart TV via MiniDLNA with full subtitle support.
 
+## Prerequisites
+
+Install the required tools via [Homebrew](https://brew.sh):
+
+```bash
+brew install minidlna ffmpeg
+```
+
+- **`minidlna`**: Lightweight DLNA/UPnP-AV server that streams media to your TV.
+- **`ffmpeg`**: Required for `--to-mkv` stream-packaging with native subtitle tracks.
+
 ## Usage
 
 ```bash
