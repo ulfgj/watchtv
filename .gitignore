@@ -1,0 +1,36 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Temporary & session files
+.tmp_*
+*.tmp
+
+# Environment & local settings
+.env
+.venv/
+venv/
+ENV/
+
+# macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Media files (avoid committing actual movie/audio/sub files by mistake)
+*.mp4
+*.mkv
+*.m4v
+*.avi
+*.srt
+*.sub
