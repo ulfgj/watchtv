@@ -45,6 +45,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help="Convert MP4 files with .srt into MKV with native SRT subtitles (Smart TV compatible).",
     )
+    parser.add_argument(
+        "--soft-mux",
+        action="store_true",
+        help="Soft-mux matching .srt into video file in-place (no duplicate file on disk).",
+    )
     return parser.parse_args()
 
 
@@ -148,6 +153,77 @@ def convert_to_mkv_subtitles(target_target: Path) -> None:
             print(f"⚠️  Error converting {video.name}: {e}", file=sys.stderr)
 
 
+def soft_mux_in_place(target: Path) -> None:
+    """
+    Finds video files that have a matching .srt subtitle and soft-muxes the subtitle
+    track directly into the file in-place without duplicating disk space.
+    """
+    ffmpeg_bin = shutil.which("ffmpeg")
+    if not ffmpeg_bin:
+        print("Warning: ffmpeg not found. Install with 'brew install ffmpeg' to use --soft-mux.", file=sys.stderr)
+        return
+
+    # Determine files to process
+    if target.is_file():
+        if target.suffix.lower() in {".mp4", ".mkv", ".m4v"}:
+            video_files = [target]
+        else:
+            video_files = []
+    else:
+        video_files = [
+            f for f in target.rglob("*")
+            if f.is_file() and f.suffix.lower() in {".mp4", ".mkv", ".m4v"}
+        ]
+
+    for video in video_files:
+        srt_file = video.with_suffix(".srt")
+        if not srt_file.exists():
+            continue
+
+        if has_subtitle_stream(video):
+            # Already has a subtitle stream embedded
+            continue
+
+        print(f"🔄 Soft-muxing {srt_file.name} into {video.name} in-place...")
+        sub_codec = "mov_text" if video.suffix.lower() in {".mp4", ".m4v"} else "srt"
+        temp_output = video.with_name(f".tmp_mux_{video.name}")
+
+        cmd = [
+            ffmpeg_bin,
+            "-y",
+            "-i",
+            str(video),
+            "-i",
+            str(srt_file),
+            "-c",
+            "copy",
+            "-c:s",
+            sub_codec,
+            "-metadata:s:s:0",
+            "language=eng",
+            str(temp_output),
+        ]
+
+        try:
+            res = subprocess.run(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            if res.returncode == 0 and temp_output.exists() and temp_output.stat().st_size > 0:
+                temp_output.replace(video)
+                print(f"✅ Embedded subtitle into {video.name} (no extra disk space used).")
+            else:
+                if temp_output.exists():
+                    temp_output.unlink()
+                print(f"⚠️  Could not soft-mux {video.name}: {res.stderr.strip()[:120]}", file=sys.stderr)
+        except Exception as e:
+            if temp_output.exists():
+                temp_output.unlink()
+            print(f"⚠️  Error soft-muxing {video.name}: {e}", file=sys.stderr)
+
+
 def main() -> None:
     args = parse_args()
 
@@ -177,9 +253,17 @@ def main() -> None:
         print(f"Security Refusal: Sharing '{media_path}' exposes too many personal files.", file=sys.stderr)
         sys.exit(1)
 
-    # 3. Optional pre-index conversion to MKV
+    target_for_ops = single_video if single_video else media_path
+
+    # 3. Optional subtitle processing
+    if args.to_mkv and args.soft_mux:
+        print("Error: Specify either --to-mkv or --soft-mux, not both.", file=sys.stderr)
+        sys.exit(1)
+
     if args.to_mkv:
-        convert_to_mkv_subtitles(single_video if single_video else media_path)
+        convert_to_mkv_subtitles(target_for_ops)
+    elif args.soft_mux:
+        soft_mux_in_place(target_for_ops)
 
     # 4. Create a temporary directory that auto-deletes on exit
     with tempfile.TemporaryDirectory(prefix="watchtv_dlna_") as temp_dir:
