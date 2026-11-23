@@ -1,4 +1,4 @@
-# watchtv 🎬
+# watchtv
 
 ![Version](https://img.shields.io/badge/version-0.7.0-blue.svg?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
@@ -25,7 +25,7 @@ Temporarily stream a specific movie or folder to your Smart TV via MiniDLNA with
 - **MKV conversion (`--to-mkv`)**: Packages video + `.srt` into a `[SUB] <name>.mkv` file with native SRT subtitles for TVs that lack MP4 `mov_text` support.
 - **Automatic cleanup**: Runs MiniDLNA in an isolated temporary directory that cleans up its cache and logs on exit (`Ctrl+C`).
 
-## Version History 📜
+## Version History
 
 | Version | Status | Highlights |
 | :--- | :---: | :--- |
