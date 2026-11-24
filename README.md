@@ -1,6 +1,6 @@
 # watchtv
 
-![Version](https://img.shields.io/badge/version-0.11.0-blue.svg?style=flat-square)
+![Version](https://img.shields.io/badge/version-0.12.0-blue.svg?style=flat-square)
 ![License](https://img.shields.io/badge/license-MIT-green.svg?style=flat-square)
 ![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg?style=flat-square)
 
@@ -36,7 +36,8 @@ brew install minidlna ffmpeg
 
 | Version | Status | Highlights |
 | :--- | :---: | :--- |
-| **`v0.11.0`** | 🚀 *Latest* | Extracted `casttv` into its own standalone repository; `watchtv` is pure DLNA again. |
+| **`v0.12.0`** | 🚀 *Latest* | Spotify SSDP conflict detection (UDP 1900 prompt) & exit code diagnostics. |
+| **`v0.11.0`** | ✅ | Extracted `casttv` into its own standalone repository; `watchtv` is pure DLNA again. |
 | **`v0.10.0`** | ✅ | Decoupled Chromecast into standalone `casttv.py`. |
 | **`v0.9.0`** | ✅ | Added Google Chromecast streaming (`--cast` / `--cast-device`). |
 | **`v0.8.0`** | ✅ | Automatic ASS subtitle encoding in MKV to eliminate raw HTML tags (`<i>`, `<b>`). |
