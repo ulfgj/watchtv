@@ -208,17 +208,25 @@ def cast_media(video_path: Path, device: str | None = None) -> None:
     print(f"🎬 Casting '{video_path.name}' to {target_desc}...")
     print("📺 Playback started! Use Ctrl+C to stop casting.\n")
 
-    try:
-        # Run catt interactively so user can see progress and controls
-        subprocess.run(cmd)
-    except KeyboardInterrupt:
-        print("\nStopping cast session...")
+    def send_chromecast_stop() -> None:
+        """Sends an explicit stop signal to the Chromecast receiver so it does not buffer or spin."""
         stop_cmd = [python_bin, "-m", "catt.cli"]
         if device:
             stop_cmd.extend(["-d", device])
         stop_cmd.append("stop")
-        subprocess.run(stop_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        print("✅ Cast session stopped.")
+        try:
+            subprocess.run(stop_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
+        except Exception:
+            pass
+
+    try:
+        # Run catt interactively so user can see progress and controls
+        subprocess.run(cmd)
+    except KeyboardInterrupt:
+        print("\n🛑 Interrupt received! Stopping Chromecast receiver...")
+    finally:
+        send_chromecast_stop()
+        print("✅ Chromecast session stopped.")
 
 
 def main() -> None:
