@@ -7,12 +7,12 @@ import sys
 import tempfile
 from pathlib import Path
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Temporarily stream media to your Smart TV via MiniDLNA with subtitle support."
+        description="Temporarily stream media to your Smart TV via MiniDLNA or Google Chromecast with subtitle support."
     )
     parser.add_argument(
         "--version",
@@ -52,6 +52,20 @@ def parse_args() -> argparse.Namespace:
         "--to-mkv",
         action="store_true",
         help="Convert MP4 files with .srt into MKV with native SRT subtitles (Smart TV compatible).",
+    )
+    parser.add_argument(
+        "--cast",
+        action="store_true",
+        help="Cast the movie directly to a Google Chromecast device instead of starting MiniDLNA.",
+    )
+    parser.add_argument(
+        "--cast-device",
+        "--device",
+        "-d",
+        dest="cast_device",
+        type=str,
+        default=None,
+        help="Target Chromecast device name or IP (default: auto-detect).",
     )
     return parser.parse_args()
 
@@ -156,19 +170,87 @@ def convert_to_mkv_subtitles(target_target: Path) -> None:
             print(f"⚠️  Error converting {video.name}: {e}", file=sys.stderr)
 
 
+def cast_media(video_path: Path, device: str | None = None) -> None:
+    """
+    Casts a video file and its matching subtitles directly to a Google Chromecast
+    using the 'catt' CLI module.
+    """
+    python_bin = sys.executable
+
+    # Check if catt module is installed
+    try:
+        import catt  # noqa: F401
+    except ImportError:
+        print("Error: 'catt' is not installed. Install it with: pip3 install catt", file=sys.stderr)
+        sys.exit(1)
+
+    # Detect accompanying subtitles (.srt or .vtt)
+    sub_file = None
+    for ext in [".srt", ".vtt"]:
+        candidate = video_path.with_suffix(ext)
+        if candidate.exists():
+            sub_file = candidate
+            break
+
+    # Build catt command
+    cmd = [python_bin, "-m", "catt.cli"]
+    if device:
+        cmd.extend(["-d", device])
+
+    cmd.append("cast")
+    if sub_file:
+        print(f"💬 Found subtitle track: {sub_file.name}")
+        cmd.extend(["-s", str(sub_file)])
+
+    cmd.append(str(video_path))
+
+    target_desc = f"device '{device}'" if device else "auto-detected Chromecast"
+    print(f"🎬 Casting '{video_path.name}' to {target_desc}...")
+    print("📺 Playback started! Use Ctrl+C to stop casting.\n")
+
+    try:
+        # Run catt interactively so user can see progress and controls
+        subprocess.run(cmd)
+    except KeyboardInterrupt:
+        print("\nStopping cast session...")
+        stop_cmd = [python_bin, "-m", "catt.cli"]
+        if device:
+            stop_cmd.extend(["-d", device])
+        stop_cmd.append("stop")
+        subprocess.run(stop_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        print("✅ Cast session stopped.")
+
+
 def main() -> None:
     args = parse_args()
 
-    # 1. Verify minidlnad is installed
-    minidlna_bin = shutil.which("minidlnad")
-    if not minidlna_bin:
-        print("Error: 'minidlnad' not found. Install it with: brew install minidlna", file=sys.stderr)
-        sys.exit(1)
-
-    # 2. Validate and resolve target path (file or folder)
+    # 1. Validate and resolve target path (file or folder)
     input_path = Path(args.media).expanduser().resolve()
     if not input_path.exists():
         print(f"Error: '{input_path}' does not exist.", file=sys.stderr)
+        sys.exit(1)
+
+    # If --cast is selected, handle Chromecast streaming directly
+    if args.cast:
+        if input_path.is_dir():
+            # Find first playable video file in directory
+            valid_exts = {".mp4", ".mkv", ".m4v", ".webm", ".avi"}
+            video_files = [f for f in input_path.rglob("*") if f.is_file() and f.suffix.lower() in valid_exts]
+            if not video_files:
+                print(f"Error: No video files found in '{input_path}'.", file=sys.stderr)
+                sys.exit(1)
+            target_video = video_files[0]
+            print(f"Multiple files in folder. Selecting: {target_video.name}")
+        else:
+            target_video = input_path
+
+        cast_media(target_video, device=args.cast_device)
+        return
+
+    # 2. DLNA Flow: Verify minidlnad is installed
+    minidlna_bin = shutil.which("minidlnad")
+    if not minidlna_bin:
+        print("Error: 'minidlnad' not found. Install it with: brew install minidlna", file=sys.stderr)
         sys.exit(1)
 
     # If a specific file is provided, stream its parent folder
