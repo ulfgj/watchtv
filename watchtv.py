@@ -170,6 +170,43 @@ def convert_to_mkv_subtitles(target_target: Path) -> None:
             print(f"⚠️  Error converting {video.name}: {e}", file=sys.stderr)
 
 
+def discover_default_cast_device() -> str | None:
+    """Attempts to find the default local Chromecast name using mDNS."""
+    try:
+        proc = subprocess.Popen(
+            ["dns-sd", "-B", "_googlecast._tcp", "."],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        )
+        import time
+        time.sleep(1.0)
+        proc.terminate()
+        out, _ = proc.communicate()
+        for line in out.splitlines():
+            if "_googlecast._tcp." in line:
+                instance = line.split("_googlecast._tcp.")[-1].strip()
+                if instance:
+                    # Resolve friendly name
+                    l_proc = subprocess.Popen(
+                        ["dns-sd", "-L", instance, "_googlecast._tcp", "local."],
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.DEVNULL,
+                        text=True,
+                    )
+                    time.sleep(0.8)
+                    l_proc.terminate()
+                    l_out, _ = l_proc.communicate()
+                    for l_line in l_out.splitlines():
+                        if "fn=" in l_line:
+                            for part in l_line.split():
+                                if part.startswith("fn="):
+                                    return part.split("fn=")[1]
+    except Exception:
+        pass
+    return None
+
+
 def cast_media(video_path: Path, device: str | None = None) -> None:
     """
     Casts a video file and its matching subtitles directly to a Google Chromecast
@@ -184,6 +221,13 @@ def cast_media(video_path: Path, device: str | None = None) -> None:
         print("Error: 'catt' is not installed. Install it with: pip3 install catt", file=sys.stderr)
         sys.exit(1)
 
+    # Auto-detect target device name if not explicitly passed
+    target_device = device
+    if not target_device:
+        detected = discover_default_cast_device()
+        if detected:
+            target_device = detected
+
     # Detect accompanying subtitles (.srt or .vtt)
     sub_file = None
     for ext in [".srt", ".vtt"]:
@@ -194,8 +238,8 @@ def cast_media(video_path: Path, device: str | None = None) -> None:
 
     # Build catt command
     cmd = [python_bin, "-m", "catt.cli"]
-    if device:
-        cmd.extend(["-d", device])
+    if target_device:
+        cmd.extend(["-d", target_device])
 
     cmd.append("cast")
     if sub_file:
@@ -204,15 +248,15 @@ def cast_media(video_path: Path, device: str | None = None) -> None:
 
     cmd.append(str(video_path))
 
-    target_desc = f"device '{device}'" if device else "auto-detected Chromecast"
+    target_desc = f"device '{target_device}'" if target_device else "Chromecast"
     print(f"🎬 Casting '{video_path.name}' to {target_desc}...")
     print("📺 Playback started! Use Ctrl+C to stop casting.\n")
 
     def send_chromecast_stop() -> None:
         """Sends an explicit stop signal to the Chromecast receiver so it does not buffer or spin."""
         stop_cmd = [python_bin, "-m", "catt.cli"]
-        if device:
-            stop_cmd.extend(["-d", device])
+        if target_device:
+            stop_cmd.extend(["-d", target_device])
         stop_cmd.append("stop")
         try:
             subprocess.run(stop_cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=5)
