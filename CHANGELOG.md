@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2026-11-24
+
+### Removed
+- Extracted `casttv.py` into its own standalone repository (`casttv`), returning `watchtv` strictly to pure DLNA + `--to-mkv` streaming with zero `pip` dependencies.
+
 ## [0.10.0] - 2026-11-24
 
 ### Changed
