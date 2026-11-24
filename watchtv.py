@@ -5,9 +5,10 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
-__version__ = "0.11.0"
+__version__ = "0.12.0"
 
 
 def parse_args() -> argparse.Namespace:
@@ -54,6 +55,40 @@ def parse_args() -> argparse.Namespace:
         help="Convert MP4 files with .srt into MKV with native SRT subtitles (Smart TV compatible).",
     )
     return parser.parse_args()
+
+
+def is_spotify_running() -> bool:
+    """Check if Spotify is running on macOS."""
+    try:
+        res = subprocess.run(
+            ["osascript", "-e", 'application "Spotify" is running'],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            text=True,
+            timeout=2,
+        )
+        return res.stdout.strip().lower() == "true"
+    except Exception:
+        return False
+
+
+def check_and_prompt_spotify() -> None:
+    """Prompt the user to quit Spotify if it's blocking the SSDP port."""
+    if not is_spotify_running():
+        return
+
+    print("⚠️  Spotify is running. It occupies UDP port 1900 (SSDP), which prevents MiniDLNA from starting.")
+    try:
+        choice = input("👉 Would you like to quit Spotify now? [y/N]: ").strip().lower()
+        if choice in ("y", "yes"):
+            subprocess.run(["osascript", "-e", 'tell application "Spotify" to quit'], check=False)
+            print("🛑 Sent quit command to Spotify. Waiting 1s...\n")
+            time.sleep(1)
+        else:
+            print("⚠️  Continuing anyway (MiniDLNA may fail if port 1900 is occupied)...\n")
+    except (KeyboardInterrupt, EOFError):
+        print("\nAborted.")
+        sys.exit(0)
 
 
 def has_subtitle_stream(video_file: Path) -> bool:
@@ -171,6 +206,9 @@ def main() -> None:
         print(f"Error: '{input_path}' does not exist.", file=sys.stderr)
         sys.exit(1)
 
+    # 3. Check for conflicting applications (e.g. Spotify occupying UDP 1900)
+    check_and_prompt_spotify()
+
     # If a specific file is provided, stream its parent folder
     if input_path.is_file():
         media_path = input_path.parent
@@ -229,7 +267,13 @@ notify_interval=60
             )
 
         try:
-            process.wait()
+            rc = process.wait()
+            if rc != 0:
+                print(
+                    f"\n⚠️  MiniDLNA exited unexpectedly with code {rc}. "
+                    "Another process (like Spotify or another DLNA server) may be using UDP port 1900.",
+                    file=sys.stderr,
+                )
         except KeyboardInterrupt:
             print("\nShutting down DLNA server...")
             process.terminate()

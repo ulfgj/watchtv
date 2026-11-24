@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.12.0] - 2026-11-24
+
+### Added
+- **Spotify SSDP conflict detection**: Automatically checks if Spotify is running on macOS before starting `minidlnad`. Spotify holds UDP port 1900 which causes MiniDLNA to fail on startup. Prompts the user with `[y/N]` to gracefully close Spotify via AppleScript.
+- **Exit code diagnostics**: Reports informative error message if MiniDLNA terminates with a non-zero exit code instead of silently exiting.
+
 ## [0.11.0] - 2026-11-24
 
 ### Removed
